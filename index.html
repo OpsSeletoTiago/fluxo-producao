@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluxo de Produção – Dashboard</title>
+  <meta name="description" content="Sistema de gestão de fluxo produtivo com Kanban inteligente, planejamento anual e acompanhamento mensal." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════════════
+       LEFT PANEL – Planning (20%)
+  ══════════════════════════════════════════════════════ -->
+  <aside id="panel-planning">
+    <div class="panel-header">
+      <span class="panel-logo">⚙ Fluxo</span>
+      <h2>Planejamento</h2>
+      <a href="admin.html" class="btn btn-icon" title="Painel Admin" data-tip="Admin">⚙</a>
+    </div>
+
+    <div style="padding:10px 10px 6px; flex-shrink:0; display:flex; gap:6px; align-items:center; border-bottom:1px solid var(--border);">
+      <select id="year-select" class="field" style="margin:0; flex:1;">
+        <option>2025</option>
+        <option selected>2026</option>
+        <option>2027</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="btn-add-item" style="white-space:nowrap">+ Item</button>
+    </div>
+
+    <div class="panel-body" id="planning-list">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>Nenhum item.<br>Clique em <strong>+ Item</strong></p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════
+       RIGHT PANEL – Execution (80%)
+  ══════════════════════════════════════════════════════ -->
+  <main id="panel-execution">
+
+    <!-- Top bar: month navigation -->
+    <div id="exec-topbar">
+      <div class="month-nav">
+        <button id="btn-prev-month">‹</button>
+        <span id="current-month-label">– Selecione –</span>
+        <button id="btn-next-month">›</button>
+      </div>
+
+      <div class="view-controls">
+        <div class="btn-group">
+          <button class="btn btn-sm active" id="btn-view-lista">Lista</button>
+          <button class="btn btn-sm" id="btn-view-kanban">Kanban</button>
+        </div>
+        <label class="check-annual-box">
+          <input type="checkbox" id="check-annual"> Calendário Anual
+        </label>
+      </div>
+
+      <span class="exec-title" id="exec-item-title" style="color:var(--accent)">← Todos Equipamentos</span>
+      <div class="spacer"></div>
+      <button class="btn btn-sm" id="btn-add-lot">+ Lote</button>
+    </div>
+
+    <!-- Execution body -->
+    <div id="exec-body">
+
+      <!-- Monthly table -->
+      <div id="monthly-table-wrap">
+        <table class="monthly-table" id="monthly-table">
+          <thead></thead>
+          <tbody id="monthly-tbody">
+            <tr>
+              <td colspan="6">
+                <div class="empty-state"><div class="icon">📊</div><p>Selecione um item no painel esquerdo</p></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Kanban Area -->
+      <div id="kanban-area">
+        <div id="kanban-header">
+          <h3>🏗 Fluxo de Produção – Kanban</h3>
+          <span id="kanban-lot-label" style="font-size:11px; color:var(--accent)"></span>
+        </div>
+        <div id="kanban-scroll">
+          <div class="kanban-board" id="kanban-board">
+            <div class="empty-state" style="margin:auto">
+              <div class="icon">🏗</div>
+              <p>Selecione um lote para ver o Kanban</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /exec-body -->
+  </main>
+
+</div><!-- /app -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════ -->
+
+<!-- Modal: Add Planning Item -->
+<div class="modal-overlay" id="modal-add-item" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Novo Item de Planejamento</h3>
+      <button class="modal-close" onclick="closeModal('modal-add-item')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Equipamento</label>
+        <select id="item-equipment-select">
+          <option value="">Carregando...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Meta Anual (unidades)</label>
+        <input type="number" id="item-annual-meta" placeholder="Ex: 120" min="0" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-item')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-item">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Lot -->
+<div class="modal-overlay" id="modal-add-lot" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Novo Lote</h3>
+      <button class="modal-close" onclick="closeModal('modal-add-lot')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nome do Lote</label>
+        <input type="text" id="lot-name-input" placeholder="Ex: Lote A – Março" />
+      </div>
+      <div class="field">
+        <label>Data de Fim de Montagem</label>
+        <input type="date" id="lot-end-date-input" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-lot')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-lot">Salvar Lote</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Stage Status -->
+<div class="modal-overlay" id="modal-stage" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-stage-title">Atualizar Etapa</h3>
+      <button class="modal-close" onclick="closeModal('modal-stage')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
+        Lote: <strong id="modal-stage-lot"></strong><br>
+        Data prevista: <strong id="modal-stage-planned-date"></strong>
+      </p>
+      <div class="field">
+        <label>Status</label>
+        <select id="modal-stage-status">
+          <option value="open">🟡 Em Aberto</option>
+          <option value="done">🟢 Finalizado</option>
+          <option value="late">🔴 Atrasado</option>
+        </select>
+      </div>
+      <div class="field" id="field-completed-date">
+        <label>Data de Conclusão</label>
+        <input type="date" id="modal-completed-date" />
+      </div>
+      <div class="field">
+        <label>Observações</label>
+        <textarea id="modal-stage-notes" rows="2" placeholder="Opcional..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-stage')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-stage">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

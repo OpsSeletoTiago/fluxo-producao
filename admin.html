@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Fluxo de Produção</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: auto; }
+    #admin-wrapper { width: 100%; max-width: 860px; padding: 24px; }
+    .section-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-header h2 { font-size: 14px; font-weight: 700; }
+    table.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.admin-table th { padding:8px 12px; background:var(--bg-base); color:var(--text-secondary); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); }
+    table.admin-table td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    table.admin-table tr:last-child td { border-bottom:none; }
+    #login-screen { text-align:center; }
+    #login-screen h1 { font-size:24px; font-weight:800; color:var(--accent); margin-bottom:8px; }
+    #login-screen p { color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
+    .offset-input { width:70px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-family:inherit; font-size:12px; padding:4px 8px; text-align:center; }
+    .offset-input:focus { outline:none; border-color:var(--accent); }
+  </style>
+</head>
+<body>
+
+<div id="admin-wrapper">
+
+  <!-- Login gate -->
+  <div id="login-screen" class="section-card" style="max-width:340px; margin:0 auto;">
+    <h1>⚙ Admin</h1>
+    <p>Fluxo de Produção – Painel Administrativo</p>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="email-input" placeholder="seu@email.com" />
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="pwd-input" placeholder="Sua senha..." onkeydown="if(event.key==='Enter') login()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button>
+    <div id="login-error" style="color:var(--late); font-size:11px; margin-top:8px; display:none;">E-mail ou senha incorretos.</div>
+  </div>
+
+  <!-- Admin content -->
+  <div id="admin-content" style="display:none">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <div class="panel-logo" style="font-size:20px; margin-bottom:4px;">⚙ Fluxo de Produção</div>
+        <div style="color:var(--text-secondary); font-size:12px;">Painel Administrativo</div>
+      </div>
+      <a href="index.html" class="btn">← Voltar ao Dashboard</a>
+      <button class="btn btn-danger btn-sm" onclick="logout()" style="margin-left: 8px;">Sair</button>
+    </div>
+
+    <!-- Equipment Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>📦 Equipamentos</h2>
+        <button class="btn btn-primary btn-sm" onclick="showAddEquipment()">+ Novo Equipamento</button>
+      </div>
+
+      <!-- Add form (hidden by default) -->
+      <div id="add-equip-form" style="display:none; background:var(--bg-base); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="field" style="margin:0; flex:1; min-width:160px;">
+            <label>Nome</label>
+            <input type="text" id="equip-name" placeholder="Nome do equipamento..." />
+          </div>
+          <div class="field" style="margin:0; flex:2; min-width:200px;">
+            <label>Descrição (opcional)</label>
+            <input type="text" id="equip-desc" placeholder="Descrição..." />
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEquipment()">Salvar</button>
+          <button class="btn btn-sm" onclick="document.getElementById('add-equip-form').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+
+      <table class="admin-table" id="equip-table">
+        <thead><tr><th>#</th><th>Nome</th><th>Descrição</th><th>Status</th><th></th></tr></thead>
+        <tbody id="equip-tbody">
+          <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Kanban Stage Offsets -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>📅 Etapas do Kanban – Prazos (dias antes do Fim Montagem)</h2>
+        <button class="btn btn-primary btn-sm" id="btn-save-stages">Salvar Alterações</button>
+      </div>
+      <p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;">
+        Os valores definem quantos dias antes da data de Fim de Montagem cada etapa deve ocorrer. Use valores negativos (ex: -30 = 30 dias antes).
+      </p>
+      <table class="admin-table" id="stages-table">
+        <thead><tr><th>Etapa</th><th>Nome</th><th>Offset (dias)</th></tr></thead>
+        <tbody id="stages-tbody">
+          <tr><td colspan="3"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /admin-content -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

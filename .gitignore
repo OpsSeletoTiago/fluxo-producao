@@ -1,0 +1,6 @@
+# Gitignore
+.vscode/
+*.log
+backup rows/
+.DS_Store
+Thumbs.db
