@@ -467,7 +467,7 @@ table.monthly-table th {
 /* Month label spanning all stage columns */
 .th-month-label {
   background: rgba(79,142,247,.12) !important;
-  color: #7ab4ff !important;
+  color: var(--text-primary) !important;
   font-size: 11px !important;
   font-weight: 800 !important;
   letter-spacing: .08em !important;

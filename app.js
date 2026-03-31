@@ -23,7 +23,9 @@ async function init() {
     await Promise.all([
       api.loadEquipment(),
       api.loadKanbanStages(),
-      api.loadPlanningItems(state.currentYear)
+      api.loadPlanningItems(state.currentYear),
+      api.loadAllMonthlyGoals(state.currentYear),
+      api.loadAllMonthlyRealized(state.currentYear)
     ]);
 
     // 3. Setup UI
@@ -187,7 +189,7 @@ window.openStageModal = (lotId, stageId, plannedDate, lotName) => {
   const stage = state.kanbanStages.find(s => s.id === stageId);
   document.getElementById('modal-stage-title').textContent = `Etapa ${stageId}: ${stage?.name || ''}`;
   document.getElementById('modal-stage-lot').textContent = lotName;
-  document.getElementById('modal-stage-planned-date').textContent = new Date(plannedDate+'T12:00:00').toLocaleDateString('pt-BR');
+  document.getElementById('modal-stage-planned-date').textContent = plannedDate ? new Date(plannedDate+'T12:00:00').toLocaleDateString('pt-BR') : '—';
   
   const saved = (state.stageStatuses[lotId] || {})[stageId];
   document.getElementById('modal-stage-status').value = saved?.status || 'open';

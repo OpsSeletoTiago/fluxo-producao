@@ -78,7 +78,7 @@ export function renderMonthBlock(month, year, planningItemId = null) {
           <th class="th-base">Meta</th>
           <th class="th-base">Realizado</th>
           <th class="th-base">% Ating.</th>
-        ${stages.map(s => `<th class="th-stage" style="background:${hexToRgba(s.color || '#4f8ef7',0.2)};color:#fff;">${s.name}</th>`).join('')}
+        ${stages.map(s => `<th class="th-stage" style="background:${hexToRgba(s.color || '#4f8ef7',0.2)};color:var(--text-primary);">${s.name}</th>`).join('')}
         </tr>
       </thead>
       <tbody>`;
@@ -113,7 +113,7 @@ export function renderMonthBlock(month, year, planningItemId = null) {
             const day = String(dateObj.getDate()).padStart(2,'0');
             const monthAbbr = MONTHS_ABBR[dateObj.getMonth()];
             const shortDate = `${day} ${monthAbbr}`;
-            const statusEmoji = status === 'done' ? '🟢' : status === 'late' ? '🔴' : '🟡';
+            const statusEmoji = status === 'done' ? '✅' : status === 'late' ? '🔴' : '🟡';
             let badgeHtml = '';
             if (saved && saved.status === 'done') {
               const diff = Math.round((new Date(completedDate+'T12:00:00') - new Date(planned+'T12:00:00'))/86400000);
@@ -234,7 +234,7 @@ export function renderKanban() {
       const equipName = item?.equipment?.name || '—';
 
       return `
-      <div class="kanban-col">        <div class="kanban-col-header" style="background:${stage.color || '#4f8ef7'};color:#fff;opacity:0.6;">
+      <div class="kanban-col">        <div class="kanban-col-header" style="background:${stage.color || '#4f8ef7'};color:var(--text-primary);opacity:0.6;">
           <div class="col-stage-num">Etapa ${stage.id}</div>
           <div class="col-stage-name">${stage.name}</div>
         </div>
@@ -242,7 +242,7 @@ export function renderKanban() {
           <div class="kanban-card status-${resolvedStatus}" onclick="window.openStageModal('${lot.id}', ${stage.id}, '${plannedDate}', '${lot.name}')">
             <div class="kcard-equip-name" style="font-size:8px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:2px">${equipName}</div>
             ${badge}<div class="kcard-lot-name">${lot.name}</div><div class="kcard-date">📅 ${formatDate(plannedDate)}</div>
-            ${completedDate ? `<div class="kcard-date" style="color:var(--done)">✓ ${formatDate(completedDate)}</div>` : ''}
+            ${completedDate ? `<div class="kcard-date" style="color:var(--done)">✅ ${formatDate(completedDate)}</div>` : ''}
           </div>
         </div>
       </div>`;
