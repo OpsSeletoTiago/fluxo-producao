@@ -2,7 +2,9 @@
 const SUPABASE_URL = 'https://sscdyfeacelggtijhiyd.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_jLRRJIoUz5nZRzwV8rajsw_XFpwCNOb';
 
-const ADMIN_PASSWORD = 'admin2026';
+export const ADMIN_PASSWORD = 'admin2026';
 
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// The global 'supabase' object is provided by the script tag in index.html
+const { createClient } = window.supabase;
+export const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+

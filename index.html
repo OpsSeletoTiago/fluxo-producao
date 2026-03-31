@@ -61,11 +61,15 @@
         <label class="check-annual-box">
           <input type="checkbox" id="check-annual"> Calendário Anual
         </label>
+        <div style="width:1px; height:20px; background:var(--border); margin:0 8px;"></div>
+        <button class="btn btn-sm" onclick="openMonthlyDefaultsModal()" title="Configurar prazos baseados neste mês">⚙ Prazos do Mês</button>
       </div>
 
       <span class="exec-title" id="exec-item-title" style="color:var(--accent)">← Todos Equipamentos</span>
       <div class="spacer"></div>
-      <button class="btn btn-sm" id="btn-add-lot">+ Lote</button>
+      <button class="btn btn-sm" id="btn-theme-toggle" title="Alternar Tema">🌓</button>
+      <button class="btn btn-sm" style="margin-left:8px" onclick="window.open('tv.html', '_blank')" title="Abrir visualização para TV">📺 Modo TV</button>
+      <button class="btn btn-sm" id="btn-add-lot" style="margin-left:8px">+ Lote</button>
     </div>
 
     <!-- Execution body -->
@@ -171,10 +175,13 @@
       <button class="modal-close" onclick="closeModal('modal-stage')">×</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
-        Lote: <strong id="modal-stage-lot"></strong><br>
-        Data prevista: <strong id="modal-stage-planned-date"></strong>
-      </p>
+      <div style="background:var(--accent-glow); padding:10px; border-radius:8px; border:1px solid var(--accent); margin-bottom:16px;">
+        <div style="font-size:10px; text-transform:uppercase; color:var(--accent); font-weight:700;">Lote / Data Prevista</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <strong id="modal-stage-lot" style="font-size:14px;"></strong>
+          <strong id="modal-stage-planned-date" style="font-size:14px; color:var(--accent);"></strong>
+        </div>
+      </div>
       <div class="field">
         <label>Status</label>
         <select id="modal-stage-status">
@@ -199,8 +206,40 @@
   </div>
 </div>
 
+<!-- Modal: Monthly Global Deadlines -->
+<div class="modal-overlay" id="modal-monthly-defaults" style="display:none">
+  <div class="modal" style="width: 500px">
+    <div class="modal-header">
+      <h3 id="modal-monthly-title">Prazos Globais do Mês</h3>
+      <button class="modal-close" onclick="closeModal('modal-monthly-defaults')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
+        Os valores definidos aqui valerão para <strong>todos os equipamentos</strong> do mês atual (<span id="monthly-modal-month-name"></span>).
+        Se deixado em branco, o sistema usará o prazo padrão geral da etapa.
+      </p>
+      
+      <table class="monthly-table" style="width: 100%; font-size: 11px;">
+        <thead>
+          <tr>
+            <th class="th-base">Etapa</th>
+            <th class="th-base">Offset (Dias)</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-defaults-tbody">
+          <!-- JS fills this -->
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-monthly-defaults')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMonthlyDefaults()">Salvar Prazos</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="app.js"></script>
+<script src="app.js" type="module"></script>
 </body>
 </html>
+

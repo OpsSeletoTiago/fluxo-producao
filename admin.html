@@ -10,11 +10,12 @@
   <style>
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: auto; }
     #admin-wrapper { width: 100%; max-width: 860px; padding: 24px; }
-    .section-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; }
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; display: flex; flex-direction: column; max-height: 50vh; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-shrink: 0; }
     .section-header h2 { font-size: 14px; font-weight: 700; }
+    .table-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: var(--radius); }
     table.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    table.admin-table th { padding:8px 12px; background:var(--bg-base); color:var(--text-secondary); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); }
+    table.admin-table th { padding:8px 12px; background:var(--bg-card); color:var(--text-secondary); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); position: sticky; top: 0; z-index: 10; }
     table.admin-table td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
     table.admin-table tr:last-child td { border-bottom:none; }
     #login-screen { text-align:center; }
@@ -79,12 +80,14 @@
         </div>
       </div>
 
-      <table class="admin-table" id="equip-table">
-        <thead><tr><th>#</th><th>Nome</th><th>Descrição</th><th>Status</th><th></th></tr></thead>
-        <tbody id="equip-tbody">
-          <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="admin-table" id="equip-table">
+          <thead><tr><th>#</th><th>Nome</th><th>Descrição</th><th>Status</th><th></th></tr></thead>
+          <tbody id="equip-tbody">
+            <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Kanban Stage Offsets -->
@@ -93,22 +96,55 @@
         <h2>📅 Etapas do Kanban – Prazos (dias antes do Fim Montagem)</h2>
         <button class="btn btn-primary btn-sm" id="btn-save-stages">Salvar Alterações</button>
       </div>
-      <p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;">
+      <p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px; flex-shrink: 0;">
         Os valores definem quantos dias antes da data de Fim de Montagem cada etapa deve ocorrer. Use valores negativos (ex: -30 = 30 dias antes).
       </p>
-      <table class="admin-table" id="stages-table">
-        <thead><tr><th>Etapa</th><th>Nome</th><th>Offset (dias)</th></tr></thead>
-        <tbody id="stages-tbody">
-          <tr><td colspan="3"><div class="empty-state"><div class="spinner"></div></div></td></tr>
-        </tbody>
-      </table>
+      
+      <!-- Add Stage Form (hidden by default) -->
+      <div id="add-stage-form" style="display:none; background:var(--bg-base); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px; flex-shrink: 0;">
+        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="field" style="margin:0; width: 80px;">
+            <label>ID Etapa</label>
+            <input type="number" id="new-stage-id" placeholder="Ex: 8" />
+          </div>
+          <div class="field" style="margin:0; flex:1; min-width:160px;">
+            <label>Nome</label>
+            <input type="text" id="new-stage-name" placeholder="Nome da etapa..." />
+          </div>
+          <div class="field" style="margin:0; width: 100px;">
+            <label>Offset Padrão</label>
+            <input type="number" id="new-stage-offset" placeholder="Dias" value="0" />
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveNewStage()">Salvar</button>
+          <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table" id="stages-table">
+          <thead>
+            <tr>
+              <th>Etapa / ID</th>
+              <th>Nome</th>
+              <th>Offset (dias)</th>
+              <th>Cor da Coluna</th>
+              <th style="text-align: right;">
+                <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='block'">+ Nova Etapa</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="stages-tbody">
+            <tr><td colspan="4"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div><!-- /admin-content -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="admin.js"></script>
+<script src="admin.js" type="module"></script>
 </body>
 </html>
+

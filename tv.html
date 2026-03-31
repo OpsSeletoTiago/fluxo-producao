@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TV – Fluxo de Produção</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <style>
+    body { background: var(--bg-base); overflow: hidden; }
+    #tv-app { height: 100vh; display: flex; flex-direction: column; padding: 20px; overflow: hidden; }
+    #tv-content { flex: 1; overflow-y: auto; scrollbar-width: none; }
+    #tv-content::-webkit-scrollbar { display: none; }
+    
+    /* Dedicated TV Overrides */
+    #current-month-label { font-size: 32px; font-weight: 800; color: var(--accent); }
+    .monthly-table { font-size: 14px !important; }
+    .kanban-card { padding: 12px 16px !important; }
+    .kcard-lot-name { font-size: 14px !important; }
+    .kcard-date { font-size: 12px !important; }
+
+    .current-month-highlight {
+      border: 3px solid #f5c842;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 0 30px rgba(245, 200, 66, 0.3);
+      background: rgba(245, 200, 66, 0.03);
+    }
+    
+    /* Control Overlay */
+    #tv-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      padding: 10px 20px;
+      border-radius: 40px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      z-index: 10000;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    #tv-controls:hover { opacity: 1; }
+    
+    #tv-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      z-index: 9999;
+      box-shadow: 0 0 20px var(--accent-glow);
+      animation: breathe 3s infinite;
+      display: none;
+    }
+    
+    @keyframes breathe {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="tv-page">
+
+<div id="tv-app">
+  <div style="display:flex; align-items:center; justify-content:center; margin-bottom:20px; text-align:center;">
+    <div id="current-month-label">Carregando...</div>
+  </div>
+
+  <div id="tv-content">
+    <!-- Monthly table -->
+    <div id="monthly-table-wrap" class="hidden" style="height:100%">
+      <table class="monthly-table" id="monthly-table">
+        <thead></thead>
+        <tbody id="monthly-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Kanban Area -->
+    <div id="kanban-area" class="hidden" style="height:100%">
+      <div class="kanban-board" id="kanban-board" style="justify-content:center"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tv-indicator">ROTAÇÃO ATIVA</div>
+
+<div id="tv-controls">
+  <button class="btn btn-sm" id="btn-theme-toggle">🌓 Tema</button>
+  <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
+  <div class="btn-group">
+    <button class="btn btn-sm active" id="btn-tv-lista">Lista</button>
+    <button class="btn btn-sm" id="btn-tv-kanban">Kanban</button>
+    <button class="btn btn-sm" id="btn-tv-anual">Anual</button>
+  </div>
+  <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
+  <label class="check-annual-box">
+    <input type="checkbox" id="check-auto" checked> Auto-Alternar (20s)
+  </label>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="tv.js" type="module"></script>
+</body>
+</html>
+

@@ -7,6 +7,7 @@
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
+  /* Default Dark Theme */
   --bg-base:        #080b12;
   --bg-surface:     #0d1117;
   --bg-card:        rgba(255,255,255,0.04);
@@ -21,21 +22,38 @@
   --accent:         #4f8ef7;
   --accent-glow:    rgba(79,142,247,0.25);
 
-  /* Status colours */
   --open:    #f5c842;
   --done:    #3ecf8e;
   --late:    #f55f42;
   --over100: #4f8ef7;
 
-  /* Progress thresholds */
-  --progress-low:   #e05252; /* < 45% */
-  --progress-mid:   #f0c040; /* < 70% */
-  --progress-good:  #3ecf8e; /* < 90% */
-  --progress-full:  #4f8ef7; /* ≤ 100% */
-
   --radius:   10px;
   --radius-lg: 16px;
   --shadow:   0 4px 24px rgba(0,0,0,0.5);
+
+  --sb-track: #0d1117;
+  --sb-thumb: #30363d;
+}
+
+[data-theme="light"] {
+  --bg-base:        #f0f2f5;
+  --bg-surface:     #ffffff;
+  --bg-card:        rgba(0,0,0,0.03);
+  --bg-card-hover:  rgba(0,0,0,0.05);
+  --border:         rgba(0,0,0,0.08);
+  --border-strong:  rgba(0,0,0,0.15);
+
+  --text-primary:   #1a1f26;
+  --text-secondary: #4a5568;
+  --text-muted:     #718096;
+
+  --accent:         #3182ce;
+  --accent-glow:    rgba(49,130,206,0.15);
+
+  --shadow:   0 4px 20px rgba(0,0,0,0.08);
+
+  --sb-track: #e2e8f0;
+  --sb-thumb: #cbd5e0;
 }
 
 /* ── Reset ─────────────────────────────────────────────────── */
@@ -50,6 +68,8 @@ html, body {
   line-height: 1.5;
   overflow: hidden;
 }
+
+.hidden { display: none !important; }
 
 /* ── Layout ────────────────────────────────────────────────── */
 #app {
@@ -111,11 +131,11 @@ html, body {
   overflow-x: hidden;
   padding: 10px;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--sb-thumb) transparent;
 }
 
 .panel-body::-webkit-scrollbar { width: 4px; }
-.panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--sb-thumb); border-radius: 4px; }
 
 /* ── Buttons ───────────────────────────────────────────────── */
 .btn {
@@ -186,6 +206,18 @@ html, body {
 }
 
 .planning-item:hover { background: var(--bg-card-hover); }
+
+.planning-item.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--accent);
+  background: var(--bg-surface);
+}
+
+.planning-item.drag-over {
+  border-top: 2px solid var(--accent);
+  background: var(--bg-card-hover);
+  transform: translateY(2px);
+}
 
 .item-header {
   display: flex;
@@ -293,9 +325,10 @@ html, body {
 
 .btn-group {
   display: flex;
-  background: rgba(0,0,0,0.2);
+  background: var(--bg-base);
   padding: 2px;
   border-radius: 6px;
+  border: 1px solid var(--border);
 }
 
 .btn-group .btn {
@@ -331,9 +364,38 @@ html, body {
 
 .exec-title {
   margin-left: 20px;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+}
+
+.equipment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  background: var(--accent-glow);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.equipment-badge:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.equipment-badge .arrow {
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .spacer { flex: 1; }
@@ -375,7 +437,7 @@ html, body {
   flex: 1;
   border-bottom: 1px solid var(--border);
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--sb-thumb) transparent;
 }
 
 table.monthly-table {
@@ -417,12 +479,12 @@ table.monthly-table th {
 table.monthly-table thead tr:nth-child(2) th {
   top: 28px;
   z-index: 2;
-  background: #0d1117;
+  background: var(--bg-surface);
 }
 
 /* Base fixed columns */
 .th-base {
-  background: #0d1117 !important;
+  background: var(--bg-surface) !important;
   border-right: 1px solid var(--border-strong);
 }
 
@@ -501,11 +563,24 @@ table.monthly-table td {
 /* Stage cells */
 .td-stage {
   text-align: center;
-  min-width: 110px;
+  min-width: 140px;
   cursor: pointer;
   transition: background .15s;
+  padding: 4px 8px !important;
 }
+
+.td-stage.cell-left {
+  text-align: left !important;
+}
+
 .td-stage:hover { filter: brightness(1.15); }
+
+.stage-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
 
 .td-stage-done { background: rgba(62,207,142,.08); }
 .td-stage-late { background: rgba(245,95,66,.08); }
@@ -520,18 +595,38 @@ table.monthly-table td {
 }
 
 .stage-date {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 .stage-date.done-date  { color: var(--done); }
 .stage-date.late-date  { color: var(--late); }
 .stage-date.open-date  { color: var(--text-secondary); }
 .stage-date-empty      { color: var(--text-muted); font-size: 11px; }
 
+.stage-divider {
+  opacity: 0.2;
+  font-weight: 300;
+  margin: 0 2px;
+}
+
+.badge-status {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
+.badge-status.late { color: var(--late); background: rgba(245,95,66,0.15); }
+.badge-status.done { color: var(--done); background: rgba(62,207,142,0.15); }
+.badge-status.open { color: var(--open); background: rgba(245,200,66,0.15); }
+
 /* Saldo / footer row */
 .saldo-row td {
-  background: rgba(255,255,255,.03) !important;
+  background: var(--bg-card) !important;
   border-top: 1px solid var(--border-strong);
   font-size: 11px;
 }
@@ -679,7 +774,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
 .kanban-col-header {
   padding: 10px 12px 8px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,.03);
+  background: var(--bg-card);
   flex-shrink: 0;
 }
 
@@ -706,7 +801,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
   flex-direction: column;
   gap: 6px;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--sb-thumb) transparent;
 }
 
 .kanban-col-footer {
@@ -854,7 +949,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 .modal {
-  background: #111620;
+  background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   width: 420px;
@@ -909,7 +1004,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
 
 .field input, .field select, .field textarea {
   width: 100%;
-  background: rgba(255,255,255,.05);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-primary);
@@ -925,7 +1020,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
   background: rgba(79,142,247,.08);
 }
 
-.field select option { background: #111620; }
+.field select option { background: var(--bg-surface); }
 
 /* ── Toast ─────────────────────────────────────────────────── */
 #toast-container {
@@ -939,7 +1034,7 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
 }
 
 .toast {
-  background: #1a2030;
+  background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   padding: 10px 16px;
@@ -1020,3 +1115,24 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
   transition: opacity .15s;
 }
 [data-tip]:hover::after { opacity: 1; }
+
+.current-month-highlight {
+  border: 3px solid #f5c842 !important;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 30px rgba(245, 200, 66, 0.2);
+  background: rgba(245, 200, 66, 0.02);
+  scroll-margin-top: 20px;
+}
+.month-label-highlight {
+  color: #f5c842 !important;
+  font-weight: 900 !important;
+}
+
+/* ── TV Page Specific ─────────────────────────────────────── */
+body.tv-page {
+  background: var(--bg-base);
+}
+body.tv-page #panel-planning { display: none !important; }
+body.tv-page #exec-topbar { background: transparent; border-bottom: none; }

@@ -2,7 +2,10 @@
    FLUXO DE PRODUÇÃO – admin.js  (Admin Panel)
    ============================================================= */
 
+import { db } from './supabase-config.js';
+
 'use strict';
+
 
 // ── Auth ───────────────────────────────────────────────────────
 async function login() {
@@ -176,19 +179,128 @@ async function loadStages() {
 function renderStagesTable() {
   const tbody = document.getElementById('stages-tbody');
   if (!_stages.length) {
-    tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state"><p>Nenhuma etapa encontrada</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><p>Nenhuma etapa encontrada</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = _stages.map(s => `
+  tbody.innerHTML = _stages.map(s => {
+    const color = s.color || '#4f8ef7';
+    return `
     <tr>
-      <td><span class="tag">Etapa ${s.id}</span></td>
-      <td>${s.name}</td>
+      <td><span class="tag">ID: ${s.id}</span></td>
       <td>
-        <input class="offset-input" type="number" id="offset-${s.id}" value="${s.day_offset}" />
+        <span id="stage-name-display-${s.id}">${s.name}</span>
+        <input id="stage-name-edit-${s.id}" type="text" class="realized-input" value="${s.name}" style="display:none;width:160px" />
       </td>
-    </tr>
-  `).join('');
+      <td>
+        <span id="stage-offset-display-${s.id}">${s.day_offset}</span>
+        <input class="offset-input" type="number" id="stage-offset-edit-${s.id}" value="${s.day_offset}" style="display:none" />
+      </td>
+      <td>
+        <div id="stage-color-display-${s.id}" style="display:flex;align-items:center;gap:6px;">
+          <div style="width:20px;height:20px;border-radius:5px;background:${color};border:1px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>
+          <span style="font-size:10px;color:var(--text-muted);font-family:monospace">${color}</span>
+        </div>
+        <input type="color" id="stage-color-edit-${s.id}" value="${color}" style="display:none;width:48px;height:32px;border:none;background:none;cursor:pointer;padding:0" />
+      </td>
+      <td style="text-align:right;">
+        <span id="stage-actions-${s.id}">
+          <button class="btn btn-icon btn-sm" onclick="editStage('${s.id}')" title="Editar">✏</button>
+          <button class="btn btn-icon btn-danger btn-sm" onclick="deleteStage('${s.id}', '${s.name}')" title="Excluir" ${s.id === 10 ? 'disabled' : ''}>×</button>
+        </span>
+        <span id="stage-edit-actions-${s.id}" style="display:none; gap:4px; justify-content:flex-end;">
+          <button class="btn btn-primary btn-icon btn-sm" onclick="saveStageEdit('${s.id}')">✓</button>
+          <button class="btn btn-icon btn-sm" onclick="cancelStageEdit('${s.id}')">×</button>
+        </span>
+      </td>
+    </tr>`;
+  }).join('');
 }
+
+function editStage(id) {
+  document.getElementById(`stage-name-display-${id}`).style.display = 'none';
+  document.getElementById(`stage-offset-display-${id}`).style.display = 'none';
+  document.getElementById(`stage-color-display-${id}`).style.display = 'none';
+  document.getElementById(`stage-name-edit-${id}`).style.display = 'inline-block';
+  document.getElementById(`stage-offset-edit-${id}`).style.display = 'inline-block';
+  document.getElementById(`stage-color-edit-${id}`).style.display = 'inline-block';
+  document.getElementById(`stage-actions-${id}`).style.display = 'none';
+  document.getElementById(`stage-edit-actions-${id}`).style.display = 'flex';
+}
+window.editStage = editStage;
+
+function cancelStageEdit(id) {
+  document.getElementById(`stage-name-display-${id}`).style.display = 'flex';
+  document.getElementById(`stage-offset-display-${id}`).style.display = 'inline';
+  document.getElementById(`stage-color-display-${id}`).style.display = 'flex';
+  document.getElementById(`stage-name-edit-${id}`).style.display = 'none';
+  document.getElementById(`stage-offset-edit-${id}`).style.display = 'none';
+  document.getElementById(`stage-color-edit-${id}`).style.display = 'none';
+  document.getElementById(`stage-actions-${id}`).style.display = 'inline';
+  document.getElementById(`stage-edit-actions-${id}`).style.display = 'none';
+}
+window.cancelStageEdit = cancelStageEdit;
+
+async function saveStageEdit(id) {
+  const newName = document.getElementById(`stage-name-edit-${id}`).value.trim();
+  const newOffset = parseInt(document.getElementById(`stage-offset-edit-${id}`).value);
+  const newColor = document.getElementById(`stage-color-edit-${id}`).value;
+  
+  if (!newName) { alert('O nome não pode estar vazio.'); return; }
+  if (isNaN(newOffset)) { alert('Offset inválido.'); return; }
+
+  const { error } = await db.from('kanban_stages').update({ name: newName, day_offset: newOffset, color: newColor }).eq('id', id);
+  if (error) { alert('Erro ao salvar: ' + error.message); return; }
+
+  alert('Etapa atualizada com sucesso!');
+  await loadStages();
+}
+window.saveStageEdit = saveStageEdit;
+
+async function deleteStage(id, name) {
+  if (id === 10 || id === '10') { alert('A etapa base de Fim de Montagem não pode ser excluída.'); return; }
+  if (!confirm(`Deseja realmente excluir a etapa "${name}"? Isso pode afetar lotes existentes.`)) return;
+
+  const { error } = await db.from('kanban_stages').delete().eq('id', id);
+  if (error) { alert('Erro ao excluir: ' + error.message); return; }
+
+  alert('Etapa excluída!');
+  await loadStages();
+}
+window.deleteStage = deleteStage;
+
+async function saveNewStage() {
+  const idStr = document.getElementById('new-stage-id').value.trim();
+  const name = document.getElementById('new-stage-name').value.trim();
+  const offsetStr = document.getElementById('new-stage-offset').value.trim();
+
+  if (!idStr || !name || !offsetStr) { alert('Preencha ID, Nome e Offset'); return; }
+
+  const id = parseInt(idStr);
+  const offset = parseInt(offsetStr);
+
+  if (isNaN(id) || isNaN(offset)) { alert('ID e Offset devem ser números válidos.'); return; }
+
+  const duplicate = _stages.find(s => s.id === id);
+  if (duplicate) { alert(`Já existe uma etapa com ID ${id}. Escolha outro ID.`); return; }
+
+  const { error } = await db.from('kanban_stages').insert({
+    id,
+    name,
+    day_offset: offset,
+    display_order: id // simple default
+  });
+
+  if (error) { alert('Erro ao criar etapa: ' + error.message); return; }
+
+  document.getElementById('new-stage-id').value = '';
+  document.getElementById('new-stage-name').value = '';
+  document.getElementById('new-stage-offset').value = '0';
+  document.getElementById('add-stage-form').style.display = 'none';
+  
+  alert('Nova etapa adicionada com sucesso!');
+  await loadStages();
+}
+window.saveNewStage = saveNewStage;
 
 document.getElementById('btn-save-stages').addEventListener('click', async () => {
   const updates = _stages.map(s => {
