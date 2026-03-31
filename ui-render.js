@@ -124,10 +124,10 @@ export function renderMonthBlock(month, year, planningItemId = null) {
               badgeHtml = `<span class="stage-divider">|</span><span class="badge-status late">+${diff}</span>`;
             }
             const obsIcon = saved && (saved.notes || saved.observation) ? '<span class="obs-emoji">📝</span>' : '';
-            return `<td class="td-stage cell-left" onclick="window.openStageModal('${lot.id}', ${stage.id}, '${planned}', '${lot.name}')" style="background:${hexToRgba(stage.color || '#4f8ef7', 0.2)}">
+            return `<td class="td-stage cell-left" onclick="window.openStageModal('${lot.id}', ${stage.id}, '${planned}', '${lot.name}')" style="background:${hexToRgba(stage.color || '#4f8ef7', 0.15)}">
               <div class="stage-cell-content">
-                <span class="stage-emoji">${statusEmoji}</span>
-                <span class="stage-date">${shortDate}</span>
+                <span class="neon-dot ${status}"></span>
+                <span class="stage-date ${status}-date">${shortDate}</span>
                 ${badgeHtml}
                 ${obsIcon}
               </div>

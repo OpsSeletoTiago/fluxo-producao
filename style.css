@@ -578,8 +578,50 @@ table.monthly-table td {
 .stage-cell-content {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 4px;
   width: 100%;
+}
+
+.neon-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.neon-dot.done {
+  background: var(--done);
+  box-shadow: 0 0 8px var(--done);
+  animation: neon-pulse-done 2s infinite ease-in-out;
+}
+
+.neon-dot.open {
+  background: var(--open);
+  box-shadow: 0 0 8px var(--open);
+  animation: neon-pulse-open 2s infinite ease-in-out;
+}
+
+.neon-dot.late {
+  background: var(--late);
+  box-shadow: 0 0 8px var(--late);
+  animation: neon-pulse-late 1.5s infinite ease-in-out;
+}
+
+@keyframes neon-pulse-done {
+  0%, 100% { box-shadow: 0 0 4px var(--done); transform: scale(1); }
+  50% { box-shadow: 0 0 12px var(--done); transform: scale(1.1); }
+}
+
+@keyframes neon-pulse-open {
+  0%, 100% { box-shadow: 0 0 4px var(--open); transform: scale(1); }
+  50% { box-shadow: 0 0 10px var(--open); transform: scale(1.1); }
+}
+
+@keyframes neon-pulse-late {
+  0%, 100% { box-shadow: 0 0 4px var(--late); transform: scale(1); }
+  50% { box-shadow: 0 0 15px var(--late); transform: scale(1.2); }
 }
 
 .td-stage-done { background: rgba(62,207,142,.08); }
@@ -595,10 +637,12 @@ table.monthly-table td {
 }
 
 .stage-date {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   white-space: nowrap;
   text-transform: uppercase;
+  flex: 1;
+  margin-left: 6px;
 }
 .stage-date.done-date  { color: var(--done); }
 .stage-date.late-date  { color: var(--late); }
@@ -620,9 +664,9 @@ table.monthly-table td {
   white-space: nowrap;
 }
 
-.badge-status.late { color: var(--late); background: rgba(245,95,66,0.15); }
-.badge-status.done { color: var(--done); background: rgba(62,207,142,0.15); }
-.badge-status.open { color: var(--open); background: rgba(245,200,66,0.15); }
+.badge-status.late { color: #000; background: var(--late); font-weight: 900; }
+.badge-status.done { color: #000; background: var(--done); font-weight: 900; }
+.badge-status.open { color: #000; background: var(--open); font-weight: 900; }
 
 /* Saldo / footer row */
 .saldo-row td {
