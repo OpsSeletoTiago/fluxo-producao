@@ -86,8 +86,8 @@ export function renderMonthBlock(month, year, planningItemId = null) {
   let totalGoal = 0, totalReal = 0;
 
   const baseItems = planningItemId ? state.planningItems.filter(i => i.id === planningItemId) : state.planningItems;
-  let itemsToRender = [...baseItems];
-  itemsToRender.sort((a, b) => {
+  let sortedItemsToRender = [...baseItems];
+  sortedItemsToRender.sort((a, b) => {
     const goalsA = state.monthlyGoals[a.id]?.[month];
     const goalsB = state.monthlyGoals[b.id]?.[month];
     const prioA = goalsA?.priority !== undefined && goalsA?.priority !== null ? goalsA.priority : (a.priority || 0);
@@ -95,7 +95,7 @@ export function renderMonthBlock(month, year, planningItemId = null) {
     return prioA - prioB;
   });
 
-  itemsToRender.forEach(item => {
+  sortedItemsToRender.forEach(item => {
     const goals = state.monthlyGoals[item.id] || {};
     const realized = state.monthlyRealized[item.id] || {};
     const goalVal = goals[month]?.goal ?? Math.round(item.annual_meta / 12);

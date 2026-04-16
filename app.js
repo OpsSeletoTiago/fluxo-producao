@@ -83,9 +83,11 @@ function setupEventListeners() {
   document.getElementById('kanban-area')?.classList.add('hidden');
 
 
-  document.getElementById('check-annual')?.addEventListener('change', (e) => {
+  document.getElementById('check-annual')?.addEventListener('change', async (e) => {
     state.showAnnual = e.target.checked;
+    await api.loadLots(state.selectedItemId, state.currentMonth, state.currentYear);
     renderMonthlyTable();
+    renderKanban();
   });
 
   document.getElementById('btn-save-adjustments')?.addEventListener('click', async () => {
