@@ -88,6 +88,109 @@ function setupEventListeners() {
     renderMonthlyTable();
   });
 
+  document.getElementById('btn-save-adjustments')?.addEventListener('click', async () => {
+    const goalsToSave = [];
+    document.querySelectorAll('.goal-input').forEach(input => {
+      const month = parseInt(input.dataset.month);
+      const itemId = input.dataset.item;
+      let valRaw = input.value;
+      const val = parseInt(valRaw);
+      const item = state.planningItems.find(i => i.id === itemId);
+      const defaultGoal = item ? Math.round(item.annual_meta / 12) : 0;
+      const existing = state.monthlyGoals[itemId]?.[month];
+      
+      if (!isNaN(val)) {
+        if (existing) {
+          if (existing.goal !== val) {
+            goalsToSave.push(api.saveMonthlyGoal(itemId, month, state.currentYear, val, existing.id).then(({data}) => {
+              if (data) state.monthlyGoals[itemId][month] = data;
+            }));
+          }
+        } else {
+          if (val !== defaultGoal) {
+            goalsToSave.push(api.saveMonthlyGoal(itemId, month, state.currentYear, val, null).then(({data}) => {
+               if (!state.monthlyGoals[itemId]) state.monthlyGoals[itemId] = {};
+               if (data) state.monthlyGoals[itemId][month] = data;
+            }));
+          }
+        }
+      }
+    });
+
+    const realizedToSave = [];
+    document.querySelectorAll('.realized-input').forEach(input => {
+      const month = parseInt(input.dataset.month);
+      const itemId = input.dataset.item;
+      let valRaw = input.value;
+      const existing = state.monthlyRealized[itemId]?.[month];
+      
+      if (valRaw !== '') {
+        const val = parseInt(valRaw) || 0;
+        if (existing) {
+           if (existing.realized !== val) {
+              realizedToSave.push(api.saveMonthlyRealized(itemId, month, state.currentYear, val, existing.id).then(({data}) => {
+                if (data) state.monthlyRealized[itemId][month] = data;
+              }));
+           }
+        } else {
+           realizedToSave.push(api.saveMonthlyRealized(itemId, month, state.currentYear, val, null).then(({data}) => {
+              if (!state.monthlyRealized[itemId]) state.monthlyRealized[itemId] = {};
+              if (data) state.monthlyRealized[itemId][month] = data;
+           }));
+        }
+      }
+    });
+
+    const offsetToSave = [];
+    if (state.selectedItemId) {
+      document.querySelectorAll('.offset-input').forEach(input => {
+        if (!input.dataset.stage) return;
+        const stageId = parseInt(input.dataset.stage);
+        const days = parseInt(input.value) || 0;
+        const existing = state.monthlyOffsets[state.selectedItemId]?.[stageId];
+        const s = state.kanbanStages.find(x => x.id === stageId);
+        const globalMonthly = state.monthlyStageDefaults.find(ms => ms.stage_id === stageId && ms.month === state.currentMonth && ms.year === state.currentYear);
+        let defaultDays = globalMonthly ? globalMonthly.offset_days : (s ? s.day_offset : undefined);
+        
+        if (existing !== undefined) {
+           if (existing !== days) {
+              offsetToSave.push(api.upsertStageOffset(state.selectedItemId, state.currentMonth, stageId, days).then(({data}) => {
+                 state.monthlyOffsets[state.selectedItemId][stageId] = days;
+              }));
+           }
+        } else {
+           if (days !== defaultDays) {
+              offsetToSave.push(api.upsertStageOffset(state.selectedItemId, state.currentMonth, stageId, days).then(({data}) => {
+                 if (!state.monthlyOffsets[state.selectedItemId]) state.monthlyOffsets[state.selectedItemId] = {};
+                 state.monthlyOffsets[state.selectedItemId][stageId] = days;
+              }));
+           }
+        }
+      });
+    }
+
+    const tasks = [...goalsToSave, ...realizedToSave, ...offsetToSave];
+    if (tasks.length === 0) {
+      toast('Nenhum valor modificado', 'info');
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('btn-save-adjustments');
+      if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+      await Promise.all(tasks);
+      toast('Ajustes salvos com sucesso');
+      renderMonthlyTable();
+      renderKanban();
+    } catch (err) {
+      console.error(err);
+      toast('Erro ao salvar algumas opções', 'error');
+    } finally {
+      const btn = document.getElementById('btn-save-adjustments');
+      if (btn) { btn.disabled = false; btn.textContent = 'Salvar Valores'; }
+    }
+  });
+
   // Year select
   document.getElementById('year-select')?.addEventListener('change', async (e) => {
     state.currentYear = parseInt(e.target.value);

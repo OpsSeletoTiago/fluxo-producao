@@ -168,6 +168,7 @@ window.saveStageOffset = saveStageOffset;
 export async function setActiveMonth(month) {
   state.currentMonth = month;
   renderMonthLabel();
+  await api.loadPlanningItems(state.currentYear);
   await selectItem(state.selectedItemId);
 }
 window.setActiveMonth = setActiveMonth;
