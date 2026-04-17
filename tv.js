@@ -5,7 +5,7 @@
 
 import { state, toast } from './state.js';
 import * as api from './api.js';
-import { formatDate, computeStageDates, resolveStatus, progressClass, hexToRgba } from './utils.js';
+import { formatDate, formatShortDate, computeStageDates, resolveStatus, progressClass, hexToRgba } from './utils.js';
 import { MONTHS, MONTHS_ABBR } from './constants.js';
 
 'use strict';
@@ -179,7 +179,7 @@ function renderKanban() {
     const realVal = realized?.realized ?? 0;
     const pct = realVal && goalVal > 0 ? (realVal / goalVal) * 100 : 0;
     const cls = progressClass(pct);
-    let pctBadgeHtml = `<div class="progress-chip ${cls}" style="position:absolute; top:8px; right:8px; display:inline-block; margin:0; padding:2px 6px; font-size:11px; font-weight:900;">${pct.toFixed(0)}%</div>`;
+    let pctBadgeHtml = `<div class="progress-chip ${cls}" style="position:absolute; top:8px; right:8px; display:inline-block; margin:0; padding:4px 8px; font-size:14px; font-weight:900; border-radius:8px; border:1px solid rgba(255,255,255,0.2);">${pct.toFixed(0)}%</div>`;
 
     html += `<div class="swimlane-legend-col" style="flex:0 0 210px; padding:14px 18px; border-right:2px solid var(--border-strong); background:var(--bg-card); display:flex; flex-direction:column; justify-content:center; position:relative;">
        ${pctBadgeHtml}
@@ -198,24 +198,24 @@ function renderKanban() {
       if (savedStatus && savedStatus.status === 'done' && plannedDate && savedStatus.completed_date) {
          const diff = Math.round((new Date(savedStatus.completed_date + 'T12:00:00') - new Date(plannedDate + 'T12:00:00')) / 86400000);
          if (diff < 0) {
-            badgeHtml = `<div style="background:var(--done); color:#000; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">${diff}d adiantado</div>`;
+            badgeHtml = `<div style="background:var(--done); color:#000; padding:1px 4px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">[-${Math.abs(diff)}d]</div>`;
          } else if (diff > 0) {
-            badgeHtml = `<div style="background:var(--late); color:#fff; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">${diff}d atrasado</div>`;
+            badgeHtml = `<div style="background:var(--late); color:#fff; padding:1px 4px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">+${diff}d</div>`;
          } else {
-            badgeHtml = `<div style="background:var(--done); color:#000; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">No prazo</div>`;
+            badgeHtml = `<div style="background:var(--done); color:#000; padding:1px 4px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">Prazo</div>`;
          }
       } else if (resStatus === 'late' && plannedDate) {
          const today = new Date().toISOString().slice(0, 10);
          const diff = Math.round((new Date(today + 'T12:00:00') - new Date(plannedDate + 'T12:00:00')) / 86400000);
-         badgeHtml = `<div style="background:var(--late); color:#fff; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">+${diff}d atrasado</div>`;
+         badgeHtml = `<div style="background:var(--late); color:#fff; padding:1px 4px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">+${diff}d</div>`;
       } else if (resStatus === 'open' && plannedDate) {
-         badgeHtml = `<div style="background:var(--open); color:#000; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">EM ABERTO</div>`;
+         badgeHtml = `<div style="background:var(--open); color:#000; padding:1px 4px; border-radius:10px; font-size:11px; font-weight:900; margin-top:6px;">Aberto</div>`;
       }
       
       html += `<div class="swimlane-stage-col" style="flex:1; padding:10px; border-right:2px solid var(--border-strong); display:flex; align-items:stretch; justify-content:center;">
-        <div class="kanban-card status-${resStatus}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 6px !important; min-height:85px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-          <div class="kcard-date" style="font-size:18px; font-weight:900; display:flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; color:#ffffff; text-shadow:0 0 8px rgba(255,255,255,0.8), 0 0 14px rgba(255,255,255,0.6);">
-             ${plannedDate ? formatDate(plannedDate) : '—'}
+        <div class="kanban-card status-${resStatus}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px 2px !important; min-height:85px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+          <div class="kcard-date">
+             ${plannedDate ? formatShortDate(plannedDate) : '—'}
           </div>
           ${badgeHtml}
         </div>

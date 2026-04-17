@@ -3,7 +3,7 @@
    Dark glassmorphism theme with Inter font
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=Inter+Tight:wght@500..900&display=swap');
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
@@ -22,10 +22,10 @@
   --accent:         #4f8ef7;
   --accent-glow:    rgba(79,142,247,0.25);
 
-  --open:    #f5c842;
-  --done:    #3ecf8e;
-  --late:    #f55f42;
-  --over100: #4f8ef7;
+  --open:    #ffcc00; /* Vivid Yellow */
+  --done:    #00ff88; /* Neon Green */
+  --late:    #ff4444; /* Bright Red */
+  --over100: #00d4ff; /* Vivid Blue */
 
   --radius:   10px;
   --radius-lg: 16px;
@@ -550,8 +550,8 @@ table.monthly-table td {
 .td-meta { min-width: 80px; text-align: center; }
 
 .td-equipment-name {
-  font-weight: 600;
-  color: #7ab4ff;
+  font-weight: 700;
+  color: var(--text-primary);
   padding-left: 12px !important;
   min-width: 140px;
   border-right: 1px solid var(--border-strong) !important;
@@ -718,11 +718,11 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
   font-weight: 600;
 }
 
-.progress-chip.low    { background: rgba(224,82,82,.2);   color: var(--progress-low); }
-.progress-chip.mid    { background: rgba(240,192,64,.2);  color: var(--progress-mid); }
-.progress-chip.good   { background: rgba(62,207,142,.2);  color: var(--progress-good); }
-.progress-chip.full   { background: rgba(79,142,247,.2);  color: var(--progress-full); }
-.progress-chip.none   { background: rgba(255,255,255,.05); color: var(--text-muted); }
+.progress-chip.low    { background: #ff4444; color: #fff; box-shadow: 0 0 8px rgba(255, 68, 68, 0.4); }
+.progress-chip.mid    { background: #ffcc00; color: #000; box-shadow: 0 0 8px rgba(255, 204, 0, 0.4); }
+.progress-chip.good   { background: #00ff88; color: #000; box-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+.progress-chip.full   { background: #00d4ff; color: #000; box-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+.progress-chip.none   { background: rgba(255,255,255,.1); color: var(--text-secondary); }
 
 .realized-input {
   width: 70px;
@@ -909,9 +909,23 @@ table.monthly-table tr.selected-row td { background: rgba(79,142,247,.07); }
 }
 
 .kcard-date {
-  font-size: 10px;
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-family: 'Inter Tight', sans-serif !important;
+  font-stretch: condensed;
+  font-weight: 900;
+  font-size: 36px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: #ffffff; /* Default for dark mode */
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+[data-theme="light"] .kcard-date {
+  color: #000000 !important;
+  text-shadow: none;
 }
 
 .kcard-status-row {
