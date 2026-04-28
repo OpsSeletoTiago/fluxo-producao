@@ -86,6 +86,10 @@ function setupEventListeners() {
   document.getElementById('check-annual')?.addEventListener('change', async (e) => {
     state.showAnnual = e.target.checked;
     await api.loadLots(state.selectedItemId, state.currentMonth, state.currentYear);
+    
+    const lotIds = state.lots.map(l => l.id);
+    if (lotIds.length) await api.loadStageStatuses(lotIds);
+    
     renderMonthlyTable();
     renderKanban();
   });
@@ -193,12 +197,14 @@ function setupEventListeners() {
     }
   });
 
-  // Year select
   document.getElementById('year-select')?.addEventListener('change', async (e) => {
     state.currentYear = parseInt(e.target.value);
-    await api.loadPlanningItems(state.currentYear);
-    renderPlanningList();
-    renderMonthlyTable();
+    await Promise.all([
+      api.loadPlanningItems(state.currentYear),
+      api.loadAllMonthlyGoals(state.currentYear),
+      api.loadAllMonthlyRealized(state.currentYear)
+    ]);
+    await window.selectItem(state.selectedItemId);
   });
 
   // Add Item Modal
