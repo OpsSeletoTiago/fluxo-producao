@@ -6,6 +6,71 @@ import { db } from './supabase-config.js';
 
 'use strict';
 
+// ── Tab Navigation ─────────────────────────────────────────────
+const TAB_META = {
+  'tab-equipment': { title: 'Equipamentos',   sub: 'Gerencie os equipamentos cadastrados no sistema' },
+  'tab-stages':    { title: 'Etapas Kanban',  sub: 'Configure os prazos e cores das etapas do fluxo' },
+  'tab-tv':        { title: 'Modo TV',        sub: 'Configurações de sincronização da tela de exibição' },
+};
+
+window.switchTab = function(tabId, navEl) {
+  // Painel ativo
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(tabId);
+  if (panel) panel.classList.add('active');
+
+  // Item do nav ativo
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+
+  // Topbar
+  const meta = TAB_META[tabId] || {};
+  const titleEl = document.getElementById('topbar-title');
+  const subEl   = document.getElementById('topbar-sub');
+  if (titleEl) titleEl.textContent = meta.title || '';
+  if (subEl)   subEl.textContent   = meta.sub   || '';
+};
+
+// ── TV Configuration ───────────────────────────────────────────
+const TV_INTERVAL_LABELS = {
+  60:   { label: '1 minuto',  detail: '(sincroniza a cada 60 segundos)' },
+  300:  { label: '5 minutos', detail: '(sincroniza a cada 5 minutos)' },
+  600:  { label: '10 minutos',detail: '(sincroniza a cada 10 minutos)' },
+  900:  { label: '15 minutos',detail: '(sincroniza a cada 15 minutos)' },
+  1800: { label: '30 minutos',detail: '(sincroniza a cada 30 minutos)' },
+  3600: { label: '1 hora',    detail: '(sincroniza a cada 60 minutos)' },
+};
+
+function initTvConfig() {
+  const saved = parseInt(localStorage.getItem('tv_sync_interval')) || 60;
+  updateTvConfigUI(saved);
+}
+
+function updateTvConfigUI(seconds) {
+  // Atualiza botões ativos
+  document.querySelectorAll('.tv-interval-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.seconds) === seconds);
+  });
+  // Atualiza preview
+  const info = TV_INTERVAL_LABELS[seconds] || { label: `${seconds}s`, detail: '' };
+  const labelEl = document.getElementById('tv-preview-label');
+  const detailEl = document.getElementById('tv-preview-detail');
+  if (labelEl) labelEl.textContent = info.label;
+  if (detailEl) detailEl.textContent = info.detail;
+}
+
+window.setTvInterval = function(seconds) {
+  localStorage.setItem('tv_sync_interval', String(seconds));
+  updateTvConfigUI(seconds);
+  // Feedback visual no botão
+  const btn = document.querySelector(`.tv-interval-btn[data-seconds="${seconds}"]`);
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Salvo';
+    setTimeout(() => { btn.textContent = orig; }, 1200);
+  }
+};
+
 
 // ── Auth ───────────────────────────────────────────────────────
 async function login() {
@@ -21,7 +86,7 @@ async function login() {
     document.getElementById('pwd-input').value = '';
   } else {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-content').style.display = 'block';
+    document.getElementById('admin-shell').style.display = 'flex';
     loadAll();
   }
 }
@@ -32,7 +97,8 @@ async function checkCurrentSession() {
   const { data: { session } } = await db.auth.getSession();
   if (session) {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-content').style.display = 'block';
+    document.getElementById('admin-shell').style.display = 'flex';
+    initTvConfig(); // carrega config da TV imediatamente mesmo antes do loadAll
     loadAll();
   }
 }
@@ -48,9 +114,32 @@ checkCurrentSession();
 let _equipment = [];
 let _stages = [];
 
+// ── Theme Toggle ───────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+    const cur  = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+});
+
 // ── Load All ───────────────────────────────────────────────────
 async function loadAll() {
   await Promise.all([loadEquipment(), loadStages()]);
+  initTvConfig();
+}
+
+// ── Badges ─────────────────────────────────────────────────────
+function updateBadge(id, count) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = count;
 }
 
 // ── Equipment ──────────────────────────────────────────────────
@@ -59,6 +148,7 @@ async function loadEquipment() {
   if (error) { alert('Erro ao carregar equipamentos'); return; }
   _equipment = data || [];
   renderEquipmentTable();
+  updateBadge('badge-equipment', _equipment.filter(e => e.active).length);
 }
 
 function renderEquipmentTable() {
@@ -174,6 +264,7 @@ async function loadStages() {
   if (error) { alert('Erro ao carregar etapas'); return; }
   _stages = data || [];
   renderStagesTable();
+  updateBadge('badge-stages', _stages.length);
 }
 
 function renderStagesTable() {

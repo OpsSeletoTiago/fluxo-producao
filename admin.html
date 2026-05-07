@@ -6,31 +6,201 @@
   <title>Admin – Fluxo de Produção</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
+  <link rel="icon"       type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>?v=2">
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: auto; }
-    #admin-wrapper { width: 100%; max-width: 860px; padding: 24px; }
-    .section-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; display: flex; flex-direction: column; max-height: 50vh; }
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-shrink: 0; }
-    .section-header h2 { font-size: 14px; font-weight: 700; }
-    .table-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: var(--radius); }
+    /* ── Reset / Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; background: var(--bg-base); color: var(--text-primary); font-family: inherit; }
+
+    /* ── Login Screen ─────────────────────────────────────── */
+    #login-screen {
+      position: fixed; inset: 0; display: flex;
+      align-items: center; justify-content: center;
+      background: var(--bg-base); z-index: 100;
+    }
+    .login-card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 36px 32px;
+      width: 100%; max-width: 360px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .login-card h1 { font-size: 26px; font-weight: 800; color: var(--accent); margin: 0 0 4px; }
+    .login-card p  { font-size: 12px; color: var(--text-secondary); margin: 0 0 24px; }
+    #login-error   { color: var(--late); font-size: 11px; margin-top: 8px; display: none; }
+
+    /* ── Shell (sidebar + content) ───────────────────────── */
+    #admin-shell { display: none; width: 100%; min-height: 100vh; }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    #admin-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 220px; background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      z-index: 10; padding: 0;
+    }
+
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-brand .logo { font-size: 17px; font-weight: 800; color: var(--accent); letter-spacing: .03em; }
+    .sidebar-brand .sub  { font-size: 10px; color: var(--text-secondary); margin-top: 3px; text-transform: uppercase; letter-spacing: .07em; }
+
+    .sidebar-nav {
+      flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--text-muted);
+      padding: 10px 10px 4px; margin-top: 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer;
+      border: none; background: none; width: 100%;
+      text-align: left; transition: background .12s, color .12s;
+      font-family: inherit;
+    }
+    .nav-item:hover  { background: var(--bg-card); color: var(--text-primary); }
+    .nav-item.active { background: rgba(79,142,247,.15); color: var(--accent); }
+    .nav-item .nav-icon { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+    .nav-item .nav-badge {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      background: var(--accent); color: #fff;
+      padding: 1px 7px; border-radius: 20px; min-width: 20px; text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 12px 10px; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+    }
+    .sidebar-footer a,
+    .sidebar-footer button {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      background: none; border: none; cursor: pointer;
+      text-decoration: none; width: 100%; font-family: inherit;
+      transition: background .12s, color .12s;
+    }
+    .sidebar-footer a:hover    { background: var(--bg-card); color: var(--text-primary); }
+    .sidebar-footer button:hover { background: rgba(239,68,68,.12); color: var(--late); }
+
+    /* ── Main Content ─────────────────────────────────────── */
+    #admin-main {
+      margin-left: 220px; flex: 1;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Topbar */
+    #admin-topbar {
+      height: 56px; display: flex; align-items: center;
+      padding: 0 28px; border-bottom: 1px solid var(--border);
+      background: var(--bg-surface); flex-shrink: 0; gap: 12px;
+    }
+    #admin-topbar .topbar-title { font-size: 15px; font-weight: 700; }
+    #admin-topbar .topbar-sub   { font-size: 11px; color: var(--text-secondary); margin-left: 8px; }
+    .topbar-spacer { flex: 1; }
+
+    /* Tab panels */
+    #admin-panels { flex: 1; padding: 28px; overflow-y: auto; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ────────────────────────────────────────────── */
+    .panel-card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .panel-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .panel-card-header h2 { font-size: 13px; font-weight: 700; margin: 0; }
+    .panel-card-header p  { font-size: 11px; color: var(--text-secondary); margin: 0; }
+
+    /* ── Tables ───────────────────────────────────────────── */
+    .table-wrap {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; overflow-y: auto; max-height: 55vh;
+    }
     table.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    table.admin-table th { padding:8px 12px; background:var(--bg-card); color:var(--text-secondary); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-    table.admin-table td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
-    table.admin-table tr:last-child td { border-bottom:none; }
-    #login-screen { text-align:center; }
-    #login-screen h1 { font-size:24px; font-weight:800; color:var(--accent); margin-bottom:8px; }
-    #login-screen p { color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
-    .offset-input { width:70px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-family:inherit; font-size:12px; padding:4px 8px; text-align:center; }
-    .offset-input:focus { outline:none; border-color:var(--accent); }
+    table.admin-table th {
+      padding: 9px 14px; background: var(--bg-card); color: var(--text-secondary);
+      font-weight: 600; font-size: 10px; text-transform: uppercase;
+      letter-spacing: .06em; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 5;
+    }
+    table.admin-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    table.admin-table tr:last-child td { border-bottom: none; }
+    table.admin-table tr:hover td { background: var(--bg-card); }
+
+    /* ── Inline add forms ─────────────────────────────────── */
+    .inline-form {
+      display: none; background: var(--bg-base); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px;
+    }
+    .inline-form-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+
+    /* ── Inputs ───────────────────────────────────────────── */
+    .offset-input {
+      width: 72px; background: transparent; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-primary); font-family: inherit;
+      font-size: 12px; padding: 4px 8px; text-align: center;
+    }
+    .offset-input:focus { outline: none; border-color: var(--accent); }
+
+    /* ── TV Config ────────────────────────────────────────── */
+    .tv-interval-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-top: 4px;
+    }
+    .tv-interval-btn {
+      padding: 14px 10px; border-radius: 10px;
+      border: 2px solid var(--border); background: var(--bg-base);
+      color: var(--text-primary); font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+      text-align: center;
+    }
+    .tv-interval-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .tv-interval-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff; box-shadow: 0 0 16px rgba(79,142,247,.35);
+    }
+    .tv-interval-btn .btn-mins { font-size: 20px; display: block; line-height: 1.2; }
+    .tv-interval-btn .btn-sub  { font-size: 10px; font-weight: 500; opacity: .75; margin-top: 2px; display: block; }
+
+    .tv-preview-box {
+      margin-top: 18px; padding: 14px 18px;
+      background: var(--bg-base); border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .tv-preview-box .tv-preview-icon { font-size: 24px; }
+    .tv-preview-box .tv-preview-text { font-size: 11px; color: var(--text-secondary); }
+    .tv-preview-box .tv-preview-val  { font-size: 18px; font-weight: 800; color: var(--accent); }
+
+    /* ── Empty / spinner ──────────────────────────────────── */
+    .empty-state { padding: 32px; text-align: center; color: var(--text-secondary); font-size: 12px; }
   </style>
 </head>
 <body>
 
-<div id="admin-wrapper">
-
-  <!-- Login gate -->
-  <div id="login-screen" class="section-card" style="max-width:340px; margin:0 auto;">
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
     <h1>⚙ Admin</h1>
     <p>Fluxo de Produção – Painel Administrativo</p>
     <div class="field">
@@ -41,110 +211,219 @@
       <label>Senha</label>
       <input type="password" id="pwd-input" placeholder="Sua senha..." onkeydown="if(event.key==='Enter') login()" />
     </div>
-    <button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button>
-    <div id="login-error" style="color:var(--late); font-size:11px; margin-top:8px; display:none;">E-mail ou senha incorretos.</div>
+    <button class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="login()">Entrar</button>
+    <div id="login-error">E-mail ou senha incorretos.</div>
   </div>
-
-  <!-- Admin content -->
-  <div id="admin-content" style="display:none">
-
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-      <div>
-        <div class="panel-logo" style="font-size:20px; margin-bottom:4px;">⚙ Fluxo de Produção</div>
-        <div style="color:var(--text-secondary); font-size:12px;">Painel Administrativo</div>
-      </div>
-      <a href="index.html" class="btn">← Voltar ao Dashboard</a>
-      <button class="btn btn-danger btn-sm" onclick="logout()" style="margin-left: 8px;">Sair</button>
-    </div>
-
-    <!-- Equipment Section -->
-    <div class="section-card">
-      <div class="section-header">
-        <h2>📦 Equipamentos</h2>
-        <button class="btn btn-primary btn-sm" onclick="showAddEquipment()">+ Novo Equipamento</button>
-      </div>
-
-      <!-- Add form (hidden by default) -->
-      <div id="add-equip-form" style="display:none; background:var(--bg-base); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;">
-        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
-          <div class="field" style="margin:0; flex:1; min-width:160px;">
-            <label>Nome</label>
-            <input type="text" id="equip-name" placeholder="Nome do equipamento..." />
-          </div>
-          <div class="field" style="margin:0; flex:2; min-width:200px;">
-            <label>Descrição (opcional)</label>
-            <input type="text" id="equip-desc" placeholder="Descrição..." />
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveEquipment()">Salvar</button>
-          <button class="btn btn-sm" onclick="document.getElementById('add-equip-form').style.display='none'">Cancelar</button>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="admin-table" id="equip-table">
-          <thead><tr><th>#</th><th>Nome</th><th>Descrição</th><th>Status</th><th></th></tr></thead>
-          <tbody id="equip-tbody">
-            <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Kanban Stage Offsets -->
-    <div class="section-card">
-      <div class="section-header">
-        <h2>📅 Etapas do Kanban – Prazos (dias antes do Fim Montagem)</h2>
-        <button class="btn btn-primary btn-sm" id="btn-save-stages">Salvar Alterações</button>
-      </div>
-      <p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px; flex-shrink: 0;">
-        Os valores definem quantos dias antes da data de Fim de Montagem cada etapa deve ocorrer. Use valores negativos (ex: -30 = 30 dias antes).
-      </p>
-      
-      <!-- Add Stage Form (hidden by default) -->
-      <div id="add-stage-form" style="display:none; background:var(--bg-base); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px; flex-shrink: 0;">
-        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
-          <div class="field" style="margin:0; width: 80px;">
-            <label>ID Etapa</label>
-            <input type="number" id="new-stage-id" placeholder="Ex: 8" />
-          </div>
-          <div class="field" style="margin:0; flex:1; min-width:160px;">
-            <label>Nome</label>
-            <input type="text" id="new-stage-name" placeholder="Nome da etapa..." />
-          </div>
-          <div class="field" style="margin:0; width: 100px;">
-            <label>Offset Padrão</label>
-            <input type="number" id="new-stage-offset" placeholder="Dias" value="0" />
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveNewStage()">Salvar</button>
-          <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='none'">Cancelar</button>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="admin-table" id="stages-table">
-          <thead>
-            <tr>
-              <th>Etapa / ID</th>
-              <th>Nome</th>
-              <th>Offset (dias)</th>
-              <th>Cor da Coluna</th>
-              <th style="text-align: right;">
-                <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='block'">+ Nova Etapa</button>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="stages-tbody">
-            <tr><td colspan="4"><div class="empty-state"><div class="spinner"></div></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div><!-- /admin-content -->
 </div>
+
+<!-- ══════════════════════════════════════════════
+     ADMIN SHELL (sidebar + main)
+══════════════════════════════════════════════ -->
+<div id="admin-shell">
+
+  <!-- ── SIDEBAR ──────────────────────────────── -->
+  <aside id="admin-sidebar">
+
+    <div class="sidebar-brand">
+      <div class="logo">⚙ Fluxo de Produção</div>
+      <div class="sub">Painel Administrativo</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Cadastros</div>
+      <button class="nav-item active" data-tab="tab-equipment" onclick="switchTab('tab-equipment', this)">
+        <span class="nav-icon">📦</span> Equipamentos
+        <span class="nav-badge" id="badge-equipment">—</span>
+      </button>
+      <button class="nav-item" data-tab="tab-stages" onclick="switchTab('tab-stages', this)">
+        <span class="nav-icon">📅</span> Etapas Kanban
+        <span class="nav-badge" id="badge-stages">—</span>
+      </button>
+
+      <div class="nav-section-label" style="margin-top:10px;">Configurações</div>
+      <button class="nav-item" data-tab="tab-tv" onclick="switchTab('tab-tv', this)">
+        <span class="nav-icon">📺</span> Modo TV
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="index.html">← Voltar ao Dashboard</a>
+      <button onclick="logout()">⎋ Sair</button>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────── -->
+  <div id="admin-main">
+
+    <!-- Topbar -->
+    <div id="admin-topbar">
+      <span class="topbar-title" id="topbar-title">Equipamentos</span>
+      <span class="topbar-sub" id="topbar-sub">Gerencie os equipamentos cadastrados no sistema</span>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-sm" id="btn-theme-toggle" title="Alternar tema">🌓</button>
+    </div>
+
+    <!-- Tab Panels -->
+    <div id="admin-panels">
+
+      <!-- ── TAB: EQUIPAMENTOS ─────────────────── -->
+      <div class="tab-panel active" id="tab-equipment">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div>
+              <h2>📦 Equipamentos</h2>
+              <p style="margin-top:3px;">Cadastre e gerencie os equipamentos do fluxo de produção</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showAddEquipment()">+ Novo Equipamento</button>
+          </div>
+
+          <div class="inline-form" id="add-equip-form">
+            <div class="inline-form-row">
+              <div class="field" style="margin:0; flex:1; min-width:160px;">
+                <label>Nome</label>
+                <input type="text" id="equip-name" placeholder="Nome do equipamento..." />
+              </div>
+              <div class="field" style="margin:0; flex:2; min-width:200px;">
+                <label>Descrição (opcional)</label>
+                <input type="text" id="equip-desc" placeholder="Descrição..." />
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="saveEquipment()">Salvar</button>
+              <button class="btn btn-sm" onclick="document.getElementById('add-equip-form').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="equip-tbody">
+                <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-equipment -->
+
+      <!-- ── TAB: ETAPAS ───────────────────────── -->
+      <div class="tab-panel" id="tab-stages">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div>
+              <h2>📅 Etapas do Kanban</h2>
+              <p style="margin-top:3px;">Prazos em dias antes do Fim de Montagem (use valores negativos, ex: -30)</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='block'">+ Nova Etapa</button>
+              <button class="btn btn-primary btn-sm" id="btn-save-stages">Salvar Alterações</button>
+            </div>
+          </div>
+
+          <div class="inline-form" id="add-stage-form">
+            <div class="inline-form-row">
+              <div class="field" style="margin:0; width:80px;">
+                <label>ID</label>
+                <input type="number" id="new-stage-id" placeholder="Ex: 11" />
+              </div>
+              <div class="field" style="margin:0; flex:1; min-width:160px;">
+                <label>Nome</label>
+                <input type="text" id="new-stage-name" placeholder="Nome da etapa..." />
+              </div>
+              <div class="field" style="margin:0; width:100px;">
+                <label>Offset (dias)</label>
+                <input type="number" id="new-stage-offset" placeholder="Dias" value="0" />
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="saveNewStage()">Salvar</button>
+              <button class="btn btn-sm" onclick="document.getElementById('add-stage-form').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Offset (dias)</th>
+                  <th>Cor</th>
+                  <th style="text-align:right;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="stages-tbody">
+                <tr><td colspan="5"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-stages -->
+
+      <!-- ── TAB: MODO TV ──────────────────────── -->
+      <div class="tab-panel" id="tab-tv">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div>
+              <h2>📺 Configurações do Modo TV</h2>
+              <p style="margin-top:3px;">Intervalo de sincronização periódica com o servidor</p>
+            </div>
+            <a href="tv.html" target="_blank" class="btn btn-sm">Abrir Modo TV ↗</a>
+          </div>
+
+          <p style="font-size:12px; color:var(--text-secondary); margin:0 0 20px; line-height:1.6;">
+            Define de quanto em quanto tempo a tela TV busca novos dados automaticamente.
+            Alterações feitas no sistema principal já aparecem em tempo real via Supabase — este
+            intervalo é apenas o ciclo de segurança para garantir sincronização total.
+          </p>
+
+          <div class="tv-interval-grid" id="tv-interval-buttons">
+            <button class="tv-interval-btn" data-seconds="60" onclick="setTvInterval(60)">
+              <span class="btn-mins">1 min</span>
+              <span class="btn-sub">60 segundos</span>
+            </button>
+            <button class="tv-interval-btn" data-seconds="300" onclick="setTvInterval(300)">
+              <span class="btn-mins">5 min</span>
+              <span class="btn-sub">300 segundos</span>
+            </button>
+            <button class="tv-interval-btn" data-seconds="600" onclick="setTvInterval(600)">
+              <span class="btn-mins">10 min</span>
+              <span class="btn-sub">600 segundos</span>
+            </button>
+            <button class="tv-interval-btn" data-seconds="900" onclick="setTvInterval(900)">
+              <span class="btn-mins">15 min</span>
+              <span class="btn-sub">900 segundos</span>
+            </button>
+            <button class="tv-interval-btn" data-seconds="1800" onclick="setTvInterval(1800)">
+              <span class="btn-mins">30 min</span>
+              <span class="btn-sub">1800 segundos</span>
+            </button>
+            <button class="tv-interval-btn" data-seconds="3600" onclick="setTvInterval(3600)">
+              <span class="btn-mins">1 hora</span>
+              <span class="btn-sub">3600 segundos</span>
+            </button>
+          </div>
+
+          <div class="tv-preview-box">
+            <span class="tv-preview-icon">⏱</span>
+            <div>
+              <div class="tv-preview-text">Intervalo configurado atualmente</div>
+              <div class="tv-preview-val" id="tv-preview-label">—</div>
+            </div>
+            <div style="margin-left:auto; font-size:11px; color:var(--text-muted);" id="tv-preview-detail"></div>
+          </div>
+        </div>
+      </div><!-- /tab-tv -->
+
+    </div><!-- /admin-panels -->
+  </div><!-- /admin-main -->
+</div><!-- /admin-shell -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js" type="module"></script>
 </body>
 </html>
-

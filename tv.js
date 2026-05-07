@@ -318,12 +318,17 @@ document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
 });
 
 // ── Sync Timer ────────────────────────────────────────────────────
-let syncCountdown = 600; // 10 Minutos
+function getSyncInterval() {
+  const saved = localStorage.getItem('tv_sync_interval');
+  return saved ? parseInt(saved) : 60; // padrão: 1 minuto
+}
+
+let syncCountdown = getSyncInterval();
 
 setInterval(() => {
   syncCountdown--;
   if (syncCountdown <= 0) {
-    syncCountdown = 600;
+    syncCountdown = getSyncInterval();
     console.log('Sincronização Periódica – Refreshing TV...');
     Promise.all([
       api.loadEquipment(),
@@ -337,9 +342,10 @@ setInterval(() => {
   
   const timerDiv = document.getElementById('sync-timer-display');
   if (timerDiv) {
+    const interval = getSyncInterval();
     const mins = Math.floor(syncCountdown / 60);
     const secs = syncCountdown % 60;
-    const isClose = syncCountdown < 30;
+    const isClose = syncCountdown < Math.min(30, interval * 0.2);
     timerDiv.innerHTML = `<span style="font-size:14px; display:inline-block; ${isClose ? 'animation: breathe 1s infinite; color:var(--accent);' : ''}">🔄</span> ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
   }
 }, 1000);
@@ -372,7 +378,7 @@ async function init() {
          if (window.tvSyncTimer) clearTimeout(window.tvSyncTimer);
          window.tvSyncTimer = setTimeout(async () => {
            console.log('Sincronização em Tempo Real – Refreshing TV...');
-           syncCountdown = 600; // Reset do timer ao sofrer alteração real!
+           syncCountdown = getSyncInterval(); // Reset do timer ao sofrer alteração real!
            await Promise.all([
              api.loadPlanningItems(state.currentYear), 
              api.loadAllMonthlyGoals(state.currentYear), 
